@@ -1,25 +1,25 @@
 // Account Schema
 
-model Account{
-  id String @id @default(uuid())
-  email String @unique
-  passwordHash String?
+model Account {
+  id            String                @id @default(uuid())
+  email         String                @unique
+  passwordHash  String?
   emailVerified DateTime?
-  status AccountStatus @default(ACTIVE)  
-  lastLoginAt DateTime?
-  user User?
+  status        AccountStatus         @default(ACTIVE)
+  lastLoginAt   DateTime?
+  user          User?
   authProviders AuthProviderAccount[]
-  createdAt DateTime @default(now())
-  updateAt DateTime @updatedAt
+  createdAt     DateTime              @default(now())
+  updateAt      DateTime              @updatedAt
 
   @@map("accounts")
 }
 
 // Auth Provider Account like google facebook
-model AuthProviderAccount{
-  id String @id @default(uuid())
-  accountId String
-  provider AuthProvider
+model AuthProviderAccount {
+  id                String       @id @default(uuid())
+  accountId         String
+  provider          AuthProvider
   providerAccountId String
 
   account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
@@ -33,20 +33,23 @@ model AuthProviderAccount{
   @@map("auth_provider_accounts")
 }
 
-model User{
-  id String @id @default(uuid())
-  accountId String @unique
-  name String
-  username String? @unique
-  avatar String?
-  bio String?
-  role UserRole @default(STUDENT)
+model User {
+  id        String   @id @default(uuid())
+  accountId String   @unique
+  name      String
+  username  String?  @unique
+  avatar    String?
+  isSuperAdmin Boolean @default(false)
+  bio       String?
+  roleId String
+  role   Role @relation(fields: [roleId], references: [id])
+  
   githubUrl String?
 
   account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
-  updateAt DateTime @updatedAt
+  updateAt  DateTime @updatedAt
 
   @@map("users")
 }

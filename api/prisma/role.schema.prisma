@@ -1,0 +1,37 @@
+enum OverviewPermission {
+  NO_ACCESS
+  VIEW
+}
+
+enum ReviewPermission {
+  NO_ACCESS
+  VIEW
+  REVIEW
+}
+
+enum SubmissionPermission {
+  NO_ACCESS
+  VIEW
+  SUBMIT
+}
+
+enum TeamPermission {
+  NO_ACCESS
+  VIEW
+  MANAGE
+}
+
+model Role {
+  id                   String               @id @default(uuid())
+  name                 String               @unique
+  key                  String               @unique
+  users User[]
+  overviewPermission   OverviewPermission   @default(NO_ACCESS)
+  reviewPermission     ReviewPermission     @default(NO_ACCESS)
+  submissionPermission SubmissionPermission @default(NO_ACCESS)
+  teamPermission       TeamPermission       @default(NO_ACCESS)
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+
+  @@map("roles")
+}

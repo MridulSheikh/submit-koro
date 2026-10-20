@@ -29,7 +29,7 @@ app.use(
 app.get("/health", async (req: Request, res: Response) => {
   return sendResponse(res, {
     statusCode: httpStatus.OK,
-    message: "Healthy!",
+    message: "Server is Running",
     success: true,
     data: null,
   });
