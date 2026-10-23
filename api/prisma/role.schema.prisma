@@ -25,13 +25,14 @@ model Role {
   id                   String               @id @default(uuid())
   name                 String               @unique
   key                  String               @unique
-  users User[]
   overviewPermission   OverviewPermission   @default(NO_ACCESS)
   reviewPermission     ReviewPermission     @default(NO_ACCESS)
   submissionPermission SubmissionPermission @default(NO_ACCESS)
   teamPermission       TeamPermission       @default(NO_ACCESS)
   createdAt            DateTime             @default(now())
   updatedAt            DateTime             @updatedAt
+  users                User[]
 
+  @@index([key, id])
   @@map("roles")
 }

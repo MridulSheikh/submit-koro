@@ -1,0 +1,33 @@
+enum TeamMemberRole {
+  OWNER
+  MEMBER
+}
+
+model Team {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  ownerId String
+  owner   User         @relation("TeamOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  members TeamMember[]
+
+  @@index([ownerId, createdAt])
+  @@map("teams")
+}
+
+model TeamMember {
+  id       String         @id @default(uuid())
+  role     TeamMemberRole @default(MEMBER)
+  joinedAt DateTime       @default(now())
+  teamId   String
+  team     Team           @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User           @relation("TeamMembership", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@index([userId])
+  @@map("team_members")
+}

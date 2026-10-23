@@ -7,5 +7,12 @@ export default {
     DATABASE_URL: process.env.DATABASE_URL,
     NODE_ENV: process.env.NODE_ENV,
     PORT: process.env.PORT,
-    CLIENT_URL: process.env.CLIENT_URL
+    CLIENT_URL: process.env.CLIENT_URL,
+    BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
+    BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
+    SMTP_USER: process.env.SMTP_USER,
+    SMTP_PASSWORD: process.env.SMTP_PASSWORD,
+    SUPER_ADMIN_NAME: process.env.SUPER_ADMIN_NAME,
+    SUPER_ADMIN_EMAIL: process.env.SUPER_ADMIN_EMAIL,
+    SUPER_ADMIN_PASSWORD: process.env.SUPER_ADMIN_PASSWORD
 }

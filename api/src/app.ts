@@ -7,23 +7,27 @@ import globalErrorHandler from "./middleware/globalErrorHandlers";
 import notFound from "./middleware/notFoundError";
 import sendResponse from "./utils/sendResponse";
 import httpStatus from "http-status";
+import { toNodeHandler } from "better-auth/node";
+import { auth } from "./lib/auth";
 
 const app: Application = express();
 
 // Dynamically determine client URL
 const client_url = config.CLIENT_URL as string;
 
+// Enable CORS 
+app.use(
+  cors({
+    origin: client_url,
+    credentials: true
+  }),
+);
+
 // Middleware: JSON and cookie parser
 app.use(express.json());
 app.use(cookieParser());
 
-// Enable CORS with credentials
-app.use(
-  cors({
-    origin: client_url,
-    credentials: true,
-  }),
-);
+app.all('/api/auth/{*any}', toNodeHandler(auth));
 
 // App helath
 app.get("/health", async (req: Request, res: Response) => {
