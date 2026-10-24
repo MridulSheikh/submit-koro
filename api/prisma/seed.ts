@@ -39,6 +39,30 @@ const roles = [
   },
 ] satisfies Prisma.RoleUncheckedCreateInput[];
 
+const demoSubmissionStatuses = [
+  "PENDING",
+  "IN_REVIEW",
+  "REVIEWED",
+  "APPROVED",
+  "REJECTED",
+] as const;
+
+const demoProjectTypes = [
+  "Task Planner",
+  "Campus Marketplace",
+  "Recipe Finder",
+  "Event Dashboard",
+  "Fitness Tracker",
+  "Book Discovery",
+  "Expense Manager",
+  "Travel Journal",
+  "Learning Portal",
+  "Inventory Dashboard",
+] as const;
+
+const demoSubmissionCount = Number(process.env.SUBMISSION_SEED_COUNT ?? 40_000);
+const demoSubmissionBatchSize = 1_000;
+
 async function main() {
   const superAdminEmail = config.SUPER_ADMIN_EMAIL?.trim().toLowerCase();
   if (!superAdminEmail) {
@@ -101,7 +125,51 @@ async function main() {
     console.log(`Created SUPER_ADMIN account for ${superAdminEmail}.`);
   }
 
+  const submissionOwner = await prisma.user.findUnique({
+    where: { email: superAdminEmail },
+    select: { id: true },
+  });
+  if (!submissionOwner) {
+    throw new Error("Unable to find the Super Admin account for sample submissions.");
+  }
+
+  if (!Number.isSafeInteger(demoSubmissionCount) || demoSubmissionCount < 1) {
+    throw new Error("SUBMISSION_SEED_COUNT must be a positive integer.");
+  }
+
+  let insertedSubmissionCount = 0;
+  for (let start = 0; start < demoSubmissionCount; start += demoSubmissionBatchSize) {
+    const batchLength = Math.min(demoSubmissionBatchSize, demoSubmissionCount - start);
+    const demoSubmissions: Prisma.SubmissionCreateManyInput[] = Array.from(
+      { length: batchLength },
+      (_, offset) => {
+        const index = start + offset;
+        // Keep the first 50 names and URLs stable so rerunning the original seed skips them.
+        const number = String(index + 1).padStart(2, "0");
+        const slug = `demo-submission-${number}`;
+        return {
+          userId: submissionOwner.id,
+          projectName: `Pagination Demo ${number} - ${demoProjectTypes[index % demoProjectTypes.length]}`,
+          description: `Demo submission ${number} for validating server-side pagination, filters, and review status display.`,
+          liveUrl: `https://example.com/${slug}`,
+          repositoryUrl: `https://github.com/example/${slug}`,
+          status: demoSubmissionStatuses[index % demoSubmissionStatuses.length],
+          createdAt: new Date(Date.now() - index * 60 * 60 * 1000),
+        };
+      },
+    );
+
+    const seededBatch = await prisma.submission.createMany({
+      data: demoSubmissions,
+      skipDuplicates: true,
+    });
+    insertedSubmissionCount += seededBatch.count;
+  }
+
   console.log(`Seeded ${roles.length} roles.`);
+  console.log(
+    `Added ${insertedSubmissionCount} pagination demo submissions (target: ${demoSubmissionCount}).`,
+  );
 }
 
 main()

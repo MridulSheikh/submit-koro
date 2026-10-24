@@ -2,6 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+const copyrightYear = new Date().getFullYear();
+
 export default function AuthShell({
   children,
   title,
@@ -58,7 +60,7 @@ export default function AuthShell({
           </div>
         </div>
         <p className="relative z-10 text-xs text-white/55">
-          © {new Date().getFullYear()} Submit Koro
+          © {copyrightYear} Submit Koro
         </p>
       </section>
 

@@ -43,7 +43,11 @@ const getAllSubmissionService = async (query: GetAllSubmissionsQuery) => {
       skip,
       take,
       include: {
-        reviews: true,
+        reviews: {
+          include: {
+            reviewer: { select: { id: true, name: true } },
+          },
+        },
         user: {
           select: {
             id: true,
@@ -68,15 +72,19 @@ const getAllSubmissionService = async (query: GetAllSubmissionsQuery) => {
 
 // get single submission
 
-const getSingleSubmissionService = async (id: string) => {
-  
-  // check if id not undefiend
-  if(!id){
-    throw new AppError(500, "Please provide a id")
+const getSingleSubmissionService = async (
+  id: string,
+  access: { userId: string; canViewAll: boolean },
+) => {
+  if (!id) {
+    throw new AppError(400, "Please provide an id");
   }
 
-  const submission = await prisma.submission.findUnique({
-    where: { id },
+  const submission = await prisma.submission.findFirst({
+    where: {
+      id,
+      ...(access.canViewAll ? {} : { userId: access.userId }),
+    },
   });
 
   if (!submission) {
@@ -90,12 +98,19 @@ const getSingleSubmissionService = async (id: string) => {
 const updateSubmissionService = async (
   id: string,
   payload: UpdateSubmissionInput,
+  userId?: string,
 ) => {
   if (!id) {
     throw new AppError(400, "Please provide an id");
   }
 
-  await getSingleSubmissionService(id);
+  const submission = await prisma.submission.findUnique({ where: { id } });
+  if (!submission) {
+    throw new AppError(404, "Submission not found");
+  }
+  if (userId && submission.userId !== userId) {
+    throw new AppError(403, "You can only update your own submissions");
+  }
 
   const result = await prisma.submission.update({
     where: { id },
@@ -132,7 +147,12 @@ const deleteSubmissionService = async (id: string, userId: string) => {
 const getSubmissionByUserId = async (
   id: string,
   query: GetAllSubmissionsQuery,
+  access: { userId: string; canViewAll: boolean },
 ) => {
+  if (!access.canViewAll && id !== access.userId) {
+    throw new AppError(404, "Submissions not found");
+  }
+
   const { where: queryWhere, orderBy, skip, take } = new QueryBuilder(query, {
     searchableFields: ["projectName", "description", "liveUrl", "repositoryUrl"],
     filterableFields: ["status"],
@@ -147,7 +167,20 @@ const getSubmissionByUserId = async (
   const where = { ...queryWhere, userId: id };
 
   const [submissions, total] = await Promise.all([
-    prisma.submission.findMany({ where, orderBy, skip, take }),
+    prisma.submission.findMany({
+      where,
+      orderBy,
+      skip,
+      take,
+      include: {
+        reviews: {
+          include: {
+            reviewer: { select: { id: true, name: true } },
+          },
+          orderBy: { createdAt: "desc" },
+        },
+      },
+    }),
     prisma.submission.count({ where }),
   ]);
 

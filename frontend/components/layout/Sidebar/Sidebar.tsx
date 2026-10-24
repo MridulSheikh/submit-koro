@@ -12,37 +12,68 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { FileText, LayoutDashboard, LogOut, Star, UsersRound } from "lucide-react";
+import {
+  FileText,
+  LayoutDashboard,
+  LogOut,
+  Star,
+  UserRound,
+  UsersRound,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
+import { authClient } from "@/lib/auth/client";
+import type { DashboardUser } from "@/lib/auth/server";
+import { withMutationToast } from "@/lib/mutation-toast";
 
-export type UserRole = "MENTOR" | "STUDENT";
+const navigation = [
+  { text: "Overview", icon: LayoutDashboard, route: "/", allowed: (user: DashboardUser) => user.role?.overviewPermission.includes("VIEW") },
+  { text: "Review Submissions", icon: Star, route: "/review", allowed: (user: DashboardUser) => Boolean(user.role && user.role.reviewPermission.includes("REVIEW") && user.role.submissionPermission.some((item) => item === "VIEW" || item === "SUBMIT")) },
+  { text: "My Submissions", icon: FileText, route: "/submission", allowed: (user: DashboardUser) => Boolean(user.role?.submissionPermission.some((item) => item === "VIEW" || item === "SUBMIT")) },
+  { text: "Manage Team", icon: UsersRound, route: "/mentors", allowed: (user: DashboardUser) => Boolean(user.role?.teamPermission.some((item) => item === "VIEW" || item === "MANAGE")) },
+  { text: "Edit Profile", icon: UserRound, route: "/profile", allowed: () => true },
+];
 
-const navigation = {
-  MENTOR: {
-    groupName: "Mentor View",
-    links: [
-      { text: "Overview", icon: LayoutDashboard, route: "/" },
-      { text: "Review Submissions", icon: Star, route: "/review" },
-      { text: "My Submissions", icon: FileText, route: "/submission" },
-      { text: "Manage Team", icon: UsersRound, route: "/mentors" },
-    ],
-  },
-  STUDENT: {
-    groupName: "Student View",
-    links: [{ text: "My Submissions", icon: FileText, route: "/submission" }],
-  },
-};
-
-const AppSidebar = ({ role = "MENTOR" }: { role?: UserRole }) => {
+const AppSidebar = ({ user }: { user: DashboardUser }) => {
   const pathname = usePathname();
-  const { groupName, links } = navigation[role];
+  const router = useRouter();
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const [signOutError, setSignOutError] = useState("");
+  const links = navigation.filter((item) => item.allowed(user));
+  const homeRoute = links.some((item) => item.route === "/")
+    ? "/"
+    : links[0]?.route ?? "/profile";
+  const groupName = `${user.role?.name ?? "Account"} workspace`;
+
+  const handleSignOut = async () => {
+    setIsSigningOut(true);
+    setSignOutError("");
+
+    try {
+      await withMutationToast({ loading: "Signing out…", success: "Signed out.", error: "Unable to log out." }, async () => {
+        const { error } = await authClient.signOut();
+        if (error) throw new Error(error.message || "Unable to log out. Please try again.");
+      });
+
+      router.replace("/login");
+      router.refresh();
+    } catch (error) {
+      setSignOutError(
+        error instanceof Error
+          ? error.message
+          : "Unable to log out. Please try again.",
+      );
+    } finally {
+      setIsSigningOut(false);
+    }
+  };
 
   return (
     <Sidebar>
       <SidebarHeader className="border-b border-slate-200 px-5 py-3">
-        <Link href="/" aria-label="Submit Koro home" className="inline-flex rounded-md outline-none focus-visible:ring-2 focus-visible:ring-blue-600">
+        <Link href={homeRoute} aria-label="Submit Koro home" className="inline-flex rounded-md outline-none focus-visible:ring-2 focus-visible:ring-blue-600">
           <Image
             src="/light_theme_barnd_logo.png"
             alt="Submit Koro"
@@ -75,16 +106,23 @@ const AppSidebar = ({ role = "MENTOR" }: { role?: UserRole }) => {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="border-t border-slate-200 px-5 py-4">
-        <p className="text-xs font-medium text-slate-500">{role === "MENTOR" ? "Mentor workspace" : "Student workspace"}</p>
+        <p className="text-xs font-medium text-slate-500">{groupName}</p>
         <p className="mt-1 text-[11px] text-slate-400">Submission management</p>
+        {signOutError && (
+          <p className="mt-3 text-xs leading-5 text-red-600" role="alert">
+            {signOutError}
+          </p>
+        )}
         <SidebarMenu className="mt-3">
           <SidebarMenuItem>
             <SidebarMenuButton
-              render={<Link href="/login" />}
-              className="h-9 rounded-lg px-2 text-xs font-medium text-slate-500 hover:bg-rose-50 hover:text-rose-700 [&_svg]:size-4"
+              onClick={handleSignOut}
+              disabled={isSigningOut}
+              aria-busy={isSigningOut}
+              className="h-9 rounded-lg px-2 text-xs font-medium text-slate-500 hover:bg-rose-50 hover:text-rose-700 disabled:cursor-not-allowed disabled:opacity-60 [&_svg]:size-4"
             >
               <LogOut />
-              <span>Log out</span>
+              <span>{isSigningOut ? "Logging out..." : "Log out"}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

@@ -15,7 +15,7 @@ router.use(limit("submission"));
 router
   .route("/")
   .get(
-    auth({ submissionPermission: ["SUBMIT", "VIEW"] }),
+    auth({ reviewPermission: ["REVIEW", "VIEW"] }),
     submissionController.getAllSubmissionFromDB,
   )
   .post(
@@ -39,6 +39,12 @@ router
     auth({ submissionPermission: ["SUBMIT"] }),
     submissionController.deleteSubmission,
   );
+
+router.patch(
+  "/review/:id/status",
+  auth({ reviewPermission: "REVIEW" }),
+  submissionController.updateSubmissionStatus,
+);
 
 router
   .route("/user/:userId")

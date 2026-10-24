@@ -1,13 +1,51 @@
 import { prisma } from "../../../lib/prisma";
 import AppError from "../../errors/AppError";
+import QueryBuilder from "../../builder/queryBuilder";
 import type { ChangeUserRoleInput, UserRoleResult } from "./user.type";
 import type { z } from "zod";
-import type { updateProfileSchema } from "./user.validation";
+import type { GetAllUsersQuery, updateProfileSchema } from "./user.validation";
 
 type UpdateProfileInput = z.infer<typeof updateProfileSchema>["body"];
 
 type UserRoleResultWithoutRoleId = Omit<UserRoleResult, "role"> & {
   role: Omit<NonNullable<UserRoleResult["role"]>, "id"> | null;
+};
+
+export const getAllUsers = async (query: GetAllUsersQuery) => {
+  const { where, orderBy, skip, take, page, limit } = new QueryBuilder(query, {
+    searchableFields: ["name", "email"],
+    filterableFields: ["status", "roleKey"],
+    sortableFields: ["createdAt", "name", "email", "status"],
+    defaultSort: { field: "createdAt", direction: "desc" },
+  })
+    .search()
+    .filter()
+    .sort()
+    .paginate()
+    .build();
+
+  const [users, total] = await Promise.all([
+    prisma.user.findMany({
+      where,
+      orderBy: [...orderBy, { id: "asc" }],
+      skip,
+      take,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        image: true,
+        status: true,
+        emailVerified: true,
+        createdAt: true,
+        role: { select: { key: true, name: true } },
+        _count: { select: { submissions: true } },
+      },
+    }),
+    prisma.user.count({ where }),
+  ]);
+
+  return { users, total, page, limit };
 };
 
 export const changeUserRole = async (
@@ -68,6 +106,46 @@ export const changeUserRole = async (
         role: { select: { key: true, name: true } },
       },
     });
+  });
+};
+
+export const changeUserStatus = async (
+  userId: string,
+  status: "ACTIVE" | "INACTIVE",
+  actorId: string,
+) => {
+  if (actorId === userId) {
+    throw new AppError(403, "You cannot change your own account status");
+  }
+
+  return prisma.$transaction(async (tx) => {
+    const user = await tx.user.findUnique({
+      where: { id: userId },
+      select: { id: true, name: true, email: true, status: true, role: { select: { key: true } } },
+    });
+
+    if (!user) throw new AppError(404, "User not found");
+    if (user.role?.key === "SUPER_ADMIN") throw new AppError(403, "You cannot change this protected account's status");
+    if (user.status === status) return user;
+
+    if (status === "INACTIVE" && user.role?.key === "ADMIN") {
+      const activeAdmins = await tx.user.count({
+        where: { status: "ACTIVE", role: { is: { key: "ADMIN" } } },
+      });
+      if (activeAdmins <= 1) throw new AppError(409, "Cannot deactivate the last active admin");
+    }
+
+    const updatedUser = await tx.user.update({
+      where: { id: userId },
+      data: { status },
+      select: { id: true, name: true, email: true, status: true },
+    });
+
+    if (status === "INACTIVE") {
+      await tx.session.deleteMany({ where: { userId } });
+    }
+
+    return updatedUser;
   });
 };
 

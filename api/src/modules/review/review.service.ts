@@ -8,6 +8,14 @@ const createReviewService = async (payload: TReview, userId: string) => {
     throw new AppError(401, "You are not authorized");
   }
 
+  const existingReview = await prisma.review.findFirst({
+    where: { submissionId: payload.submissionId, reviewerId: userId },
+    select: { id: true },
+  });
+  if (existingReview) {
+    throw new AppError(409, "You have already reviewed this submission");
+  }
+
   const { submission, reviewer, ...reviewData } = payload;
 
   return prisma.review.create({
@@ -90,17 +98,18 @@ const getReviewByReviewerId = async (id: string) => {
   });
 };
 
-const deletReviewById = async (id: string) => {
+const deletReviewById = async (id: string, reviewerId: string) => {
   if (!id) throw new AppError(500, "Please provide a reviewer id");
 
-  const isReviewExists = await prisma.review.findUnique({where: {id}})
+  const review = await prisma.review.findUnique({ where: { id }, select: { id: true, reviewerId: true } });
 
-  if(!isReviewExists) throw new AppError(500, "Provided Review id not found!")
+  if (!review) throw new AppError(404, "Review not found");
+  if (review.reviewerId !== reviewerId) throw new AppError(403, "You can only withdraw your own review");
 
-  const reuslt = await prisma.review.delete({
+  const result = await prisma.review.delete({
     where: { id },
   });
-  return reuslt;
+  return result;
 };
 
 const updateReviewById = async (id: string, payload: TUpdateReview) => {

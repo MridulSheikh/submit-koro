@@ -1,4 +1,3 @@
-import AppError from "../../errors/AppError";
 import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
 import reviewService from "./review.service";
@@ -38,9 +37,7 @@ const gerReviewByReviewerId = catchAsync(async(req, res)=>{
 })
 
 const deleteReviewById = catchAsync(async(req, res)=>{
-    const result = await reviewService.deletReviewById(req.params.id as string)
-
-    if(req.user?.id === req.params.id) throw new AppError(401, "You are not authorized");
+    const result = await reviewService.deletReviewById(req.params.id as string, req.user!.id)
 
     sendResponse(res,{
         statusCode: 200,

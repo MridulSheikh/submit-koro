@@ -4,13 +4,13 @@ export type ChangeUserRoleInput = {
 };
 
 
-export type OverviewPermission = "VIEW";
+export type OverviewPermission = "NO_ACCESS" | "VIEW";
 
-export type ReviewPermission = "VIEW" | "REVIEW";
+export type ReviewPermission = "NO_ACCESS" | "VIEW" | "REVIEW";
 
-export type SubmissionPermission = "VIEW" | "SUBMIT";
+export type SubmissionPermission = "NO_ACCESS" | "VIEW" | "SUBMIT";
 
-export type TeamPermission = "VIEW" | "MANAGE";
+export type TeamPermission = "NO_ACCESS" | "VIEW" | "MANAGE";
 
 export interface TRole {
   name: string;

@@ -9,7 +9,7 @@ import type {
 type CreateRoleInput = z.infer<typeof createRoleSchema>["body"];
 type UpdateRoleInput = z.infer<typeof updateRoleSchema>["body"];
 
-const protectedRoleKeys = new Set(["SUPER_ADMIN"]);
+const protectedRoleKeys = new Set(["SUPER_ADMIN", "STUDENT"]);
 
 const getRoles = async () => {
   return prisma.role.findMany({

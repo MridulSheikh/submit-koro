@@ -47,6 +47,11 @@ export const updateSubmissionSchema = z
       }),
   });
 
+export const updateSubmissionStatusSchema = z.object({
+  params: z.object({ id: z.string().uuid() }).strict(),
+  body: z.object({ status: submissionStatusSchema }).strict(),
+});
+
 export const submissionIdSchema = z
   .object({
     params: z.object({ id: z.string().uuid() }).strict(),

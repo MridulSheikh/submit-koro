@@ -27,6 +27,7 @@ Create `api/.env` with your PostgreSQL connection string, the API port, and the 
 
 ```env
 DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/submit_koro"
+REDIS_URL="redis://localhost:6379"
 PORT=4000
 CLIENT_URL="http://localhost:3000"
 ```
@@ -53,6 +54,10 @@ npm run dev
 
 Open [`http://localhost:3000`](http://localhost:3000) in your browser.
 
+The login form sends credentials to the API. If the API is not running at its
+default URL (`http://localhost:4000`), set `NEXT_PUBLIC_API_URL` in
+`frontend/.env.local` to the API origin.
+
 ## Other frontend commands
 
 Run these from `frontend/`:
@@ -65,4 +70,4 @@ npm run start
 
 ## Configuration
 
-The API reads `DATABASE_URL`, `PORT`, and `CLIENT_URL` from `api/.env`. Keep environment files and secrets out of version control.
+The API reads `DATABASE_URL`, `REDIS_URL`, `PORT`, and `CLIENT_URL` from `api/.env`. Redis is used to cache overview data for 60 seconds. Keep environment files and secrets out of version control.
