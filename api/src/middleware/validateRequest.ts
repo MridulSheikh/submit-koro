@@ -9,7 +9,7 @@ const validateRequest = (schema: ZodObject) => {
     if (config.NODE_ENV === 'development') {
       const mappedBody = Object.entries(req.body).map(([key, value]) => ({
         Field: key,
-        Value: value,
+        Value: /password|token|secret/i.test(key) ? "[REDACTED]" : value,
       }));
       console.table(mappedBody)
     }

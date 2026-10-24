@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import allRoutes from "./routes/index";
 import globalErrorHandler from "./middleware/globalErrorHandlers";
+import limit from "./middleware/limit";
 import notFound from "./middleware/notFoundError";
 import sendResponse from "./utils/sendResponse";
 import httpStatus from "http-status";
@@ -27,6 +28,7 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
+app.use("/api/auth", limit("auth"));
 app.all('/api/auth/{*any}', toNodeHandler(auth));
 
 // App helath

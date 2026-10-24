@@ -1,6 +1,10 @@
 import { prisma } from "../../../lib/prisma";
 import AppError from "../../errors/AppError";
 import type { ChangeUserRoleInput, UserRoleResult } from "./user.type";
+import type { z } from "zod";
+import type { updateProfileSchema } from "./user.validation";
+
+type UpdateProfileInput = z.infer<typeof updateProfileSchema>["body"];
 
 type UserRoleResultWithoutRoleId = Omit<UserRoleResult, "role"> & {
   role: Omit<NonNullable<UserRoleResult["role"]>, "id"> | null;
@@ -64,5 +68,27 @@ export const changeUserRole = async (
         role: { select: { key: true, name: true } },
       },
     });
+  });
+};
+
+export const updateProfile = async (
+  userId: string,
+  payload: UpdateProfileInput,
+) => {
+  return prisma.user.update({
+    where: { id: userId },
+    data: payload,
+    include: {
+      role: {
+        select: {
+          name: true,
+          key: true,
+          overviewPermission: true,
+          reviewPermission: true,
+          submissionPermission: true,
+          teamPermission: true,
+        },
+      },
+    },
   });
 };

@@ -8,27 +8,35 @@ const roles = [
   {
     key: "ADMIN",
     name: "Admin",
-    overviewPermission: "VIEW",
-    reviewPermission: "REVIEW",
-    submissionPermission: "SUBMIT",
-    teamPermission: "MANAGE",
+    overviewPermission: ["VIEW"],
+    reviewPermission: ["VIEW", "REVIEW"],
+    submissionPermission: ["VIEW", "SUBMIT"],
+    teamPermission: ["VIEW", "MANAGE"],
+  },
+  {
+    key: "MENTOR",
+    name: "Mentor",
+    overviewPermission: ["VIEW"],
+    reviewPermission: ["VIEW", "REVIEW"],
+    submissionPermission: ["VIEW"],
+    teamPermission: [],
   },
   {
     key: "STUDENT",
     name: "Student",
-    overviewPermission: "NO_ACCESS",
-    reviewPermission: "NO_ACCESS",
-    submissionPermission: "SUBMIT",
-    teamPermission: "NO_ACCESS",
+    overviewPermission: [],
+    reviewPermission: [],
+    submissionPermission: ["SUBMIT"],
+    teamPermission: [],
   },
   {
     key: "SUPER_ADMIN",
     name: "Super Admin",
-    overviewPermission: "VIEW",
-    reviewPermission: "REVIEW",
-    submissionPermission: "SUBMIT",
-    teamPermission: "MANAGE",
-  }
+    overviewPermission: ["VIEW"],
+    reviewPermission: ["VIEW", "REVIEW"],
+    submissionPermission: ["VIEW", "SUBMIT"],
+    teamPermission: ["VIEW", "MANAGE"],
+  },
 ] satisfies Prisma.RoleUncheckedCreateInput[];
 
 async function main() {

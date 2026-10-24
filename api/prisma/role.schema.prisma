@@ -25,10 +25,10 @@ model Role {
   id                   String               @id @default(uuid())
   name                 String               @unique
   key                  String               @unique
-  overviewPermission   OverviewPermission   @default(NO_ACCESS)
-  reviewPermission     ReviewPermission     @default(NO_ACCESS)
-  submissionPermission SubmissionPermission @default(NO_ACCESS)
-  teamPermission       TeamPermission       @default(NO_ACCESS)
+  overviewPermission   OverviewPermission[]   @default([])
+  reviewPermission     ReviewPermission[]     @default([])
+  submissionPermission SubmissionPermission[] @default([])
+  teamPermission       TeamPermission[]       @default([])
   createdAt            DateTime             @default(now())
   updatedAt            DateTime             @updatedAt
   users                User[]

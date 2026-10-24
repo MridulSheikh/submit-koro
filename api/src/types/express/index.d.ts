@@ -1,21 +1,4 @@
-
-export type OverviewPermission = "NO_ACCESS" | "VIEW";
-
-export type ReviewPermission = "NO_ACCESS" | "VIEW" | "REVIEW";
-
-export type SubmissionPermission = "NO_ACCESS" | "VIEW" | "SUBMIT";
-
-export type TeamPermission = "NO_ACCESS" | "VIEW" | "MANAGE";
-
-export interface Role {
-  name: string;
-  key: string;
-  overviewPermission: OverviewPermission;
-  reviewPermission: ReviewPermission;
-  submissionPermission: SubmissionPermission;
-  teamPermission: TeamPermission;
-}
-
+import { TRole } from "../../modules/user/user.type";
 
 declare global {
   namespace Express {
@@ -24,7 +7,7 @@ declare global {
         id: string;
         email: string;
         name: string;
-        role: Role | null;
+        role: TRole | null;
         emailVerified: boolean;
       };
     }

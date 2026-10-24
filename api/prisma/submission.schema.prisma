@@ -2,25 +2,28 @@ enum SubmissionStatus {
   PENDING
   IN_REVIEW
   REVIEWED
+  APPROVED
   REJECTED
 }
 
 model Submission {
-  id          String           @id @default(uuid())
-  title       String
-  description String?
-  content     String?
-  url         String?
-  status      SubmissionStatus @default(PENDING)
-  submittedAt DateTime         @default(now())
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  id            String           @id @default(uuid())
+  projectName   String
+  description   String?
+  liveUrl       String
+  repositoryUrl String
+  status        SubmissionStatus @default(PENDING)
+
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
 
   userId  String
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   reviews Review[]
 
-  @@index([userId, submittedAt])
-  @@index([status, submittedAt])
+  @@unique([userId, projectName, liveUrl, repositoryUrl])
+  @@index([userId])
+  @@index([status])
+  @@index([projectName])
   @@map("submissions")
 }
