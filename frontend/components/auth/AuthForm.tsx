@@ -17,7 +17,7 @@ import {
 const fieldClass =
   "mt-2 h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100";
 const labelClass = "block text-sm font-medium text-slate-700";
-const showDemoCredentials = process.env.NODE_ENV === "development";
+const showDemoCredentials = true;
 
 function FieldError({
   children,

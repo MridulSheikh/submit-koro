@@ -1,7 +1,10 @@
 import { createAuthClient } from "better-auth/react";
 
 export const authClient = createAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000",
+  baseURL:
+    typeof window === "undefined"
+      ? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
+      : window.location.origin,
   fetchOptions: {
     credentials: "include",
   },

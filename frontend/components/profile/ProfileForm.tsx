@@ -8,6 +8,7 @@ import ImageUploadInput from "@/components/ui/ImageUploadInput";
 import ChangePasswordDialog from "@/components/profile/ChangePasswordDialog";
 import { profileSchema, type ProfileFormValues } from "@/lib/schemas/profile.schema";
 import { withMutationToast } from "@/lib/mutation-toast";
+import { apiBaseUrl } from "@/lib/api";
 
 type Profile = {
   name: string;
@@ -48,10 +49,7 @@ export default function ProfileForm() {
 
     async function loadProfile() {
       try {
-        const apiUrl = (
-          process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
-        ).replace(/\/$/, "");
-        const response = await fetch(`${apiUrl}/api/users/me`, {
+        const response = await fetch(`${apiBaseUrl()}/api/users/me`, {
           credentials: "include",
           cache: "no-store",
           signal: controller.signal,
@@ -113,11 +111,8 @@ export default function ProfileForm() {
     }
 
     try {
-      const apiUrl = (
-        process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
-      ).replace(/\/$/, "");
       const result = await withMutationToast<{ name: string; image: string | null }>({ loading: "Saving profile…", success: "Profile saved.", error: "Unable to save your profile." }, async () => {
-        const response = await fetch(`${apiUrl}/api/users/me`, {
+        const response = await fetch(`${apiBaseUrl()}/api/users/me`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           credentials: "include",

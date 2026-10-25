@@ -1,4 +1,8 @@
 export function apiBaseUrl() {
+  // Browser requests stay on the frontend origin so the auth cookie belongs
+  // to the same host as the dashboard. Next.js rewrites proxy them to the API.
+  if (typeof window !== "undefined") return window.location.origin;
+
   return (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000").replace(/\/$/, "");
 }
 
