@@ -109,9 +109,11 @@ error response shape may differ from the application API shape above.
 
 ### Rate-limit response
 
-Auth and submission endpoints each allow 100 requests per IP per 15-minute
-window. Their counters are separate. Requests over the limit return HTTP `429`
-and include `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset`, and
+Sign-in, sign-up, and verification-email resend endpoints each allow 100
+requests per client IP per 15-minute window. Submission endpoints have a
+separate 100-request limit per IP per 15-minute window. Read-only session
+checks are not rate-limited. Requests over a limit return HTTP `429` and
+include `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset`, and
 `Retry-After` headers.
 
 ```json

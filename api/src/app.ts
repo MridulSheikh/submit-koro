@@ -13,6 +13,9 @@ import { auth } from "./lib/auth";
 
 const app: Application = express();
 
+// Render sits behind a proxy; trust its forwarded client IP for rate limits.
+app.set("trust proxy", 1);
+
 // Dynamically determine client URL
 const client_url = config.CLIENT_URL as string;
 
@@ -28,7 +31,10 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
-app.use("/api/auth", limit("auth"));
+const authRateLimit = limit("auth");
+app.use("/api/auth/sign-in/email", authRateLimit);
+app.use("/api/auth/sign-up/email", authRateLimit);
+app.use("/api/auth/send-verification-email", authRateLimit);
 app.all('/api/auth/{*any}', toNodeHandler(auth));
 
 // App helath
